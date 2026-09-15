@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b0b0e">
-<title>Give or Receive — v5.23</title>
+<title>Give or Receive — v5.24</title>
 <style>
 :root{--bg:#0b0b0e;--panel:#18181d;--panel2:#212127;--text:#f5f1e9;--muted:#aaa5ad;--line:#302e36;--jim:#8591ff;--emma:#dc86a2;--red:#d92f37;--hot:#ff554d;--cream:#eee9df}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
@@ -165,12 +165,21 @@ button{position:relative;z-index:31}
   0%,100%{transform:scale(1);filter:brightness(1);opacity:.96}
   50%{transform:scale(1.045);filter:brightness(1.16);opacity:1}
 }
+
+/* v5.24 bust choice descriptions + version tag */
+.bustChoices .choiceBtn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;text-align:center;padding:15px 18px}
+.choiceTitle{display:block;font-size:19px;font-weight:900;line-height:1.05}
+.choiceDesc{display:block;font-size:11px;line-height:1.25;font-weight:700;opacity:.62;letter-spacing:.01em}
+#strip .choiceDesc{color:#4a4540}
+#zipBtn .choiceDesc{color:#d0c8c2}
+.versionTag{position:absolute;right:18px;bottom:14px;font-size:10px;font-weight:750;letter-spacing:.08em;color:#8d8589;opacity:.48}
+#home{position:relative}
 </style></head><body><div class="app">
 <div class="top"><button type="button" class="brand brandbtn" id="homeBtn">Give or Receive</button><div class="scores"><span>Jim <b id="sj">0</b></span><span>Emma <b id="se">0</b></span></div></div>
 
-<section class="screen active" id="home"><div class="hero"><div class="eyebrow">Prototype v5.23</div><h1>GIVE OR<br>RECEIVE</h1><div class="sub">Choose how you want to play.</div></div>
+<section class="screen active" id="home"><div class="hero"><div class="eyebrow">Prototype v5.24</div><h1>GIVE OR<br>RECEIVE</h1><div class="sub">Choose how you want to play.</div></div>
 <div class="mode selected" id="mc" onclick="mode('classic')"><strong>CLASSIC</strong><span>Race to 20. Push your luck. Bust and choose between nothing — or clothing.</span></div>
-<div class="mode" id="mq" onclick="mode('quick')"><strong>QUICK STRIP</strong><span>No points race. Each player starts with 4 removable items. First one naked wins.</span></div><div class="spacer"></div><button type="button" id="actionBtn1">CONTINUE</button></section>
+<div class="mode" id="mq" onclick="mode('quick')"><strong>QUICK STRIP</strong><span>No points race. Each player starts with 4 removable items. First one naked wins.</span></div><div class="spacer"></div><button type="button" id="actionBtn1">CONTINUE</button><div class="versionTag">v5.24</div></section>
 
 <section class="screen" id="agreement"><div class="eyebrow">Before you start</div><h2>Both playing by choice.</h2><div class="sub" style="margin-bottom:15px">RECEIVE means “I’m happy to try this.” DENY means “not this one.” Either player can end a challenge whenever they want.</div>
 <div class="agree"><span class="tick" id="tj">✓</span><b>Jim</b><div class="tiny">I’m choosing to play and can change my mind at any point.</div></div><button type="button" id="aj">JIM — I'M IN</button><div style="height:9px"></div>
@@ -214,7 +223,10 @@ button{position:relative;z-index:31}
 
 <section class="screen" id="result"><div class="center"><div class="eyebrow" id="resultLabel"></div><div class="scorefx" id="resultFx"></div><div class="result" id="resultText"></div><div style="height:22px"></div><button type="button" style="width:100%" id="nextTurnBtn">NEXT TURN</button></div></section>
 
-<section class="screen" id="bust"><div class="center"><div class="bigword">BUST</div><div class="result" id="bustText"></div><div class="buttons" style="width:100%;margin-top:22px"><button type="button" class="secondary" id="zipBtn">YOU GET ZIP</button><button type="button" id="strip">YOU MUST STRIP</button><div class="tiny" id="stripInfo"></div></div></div></section>
+<section class="screen" id="bust"><div class="center"><div class="bigword">BUST</div><div class="result" id="bustText"></div><div class="buttons bustChoices" style="width:100%;margin-top:22px">
+<button type="button" class="secondary choiceBtn" id="zipBtn"><span class="choiceTitle">YOU GET ZIP</span><span class="choiceDesc">End your turn and save nothing.</span></button>
+<button type="button" class="choiceBtn" id="strip"><span class="choiceTitle">YOU MUST STRIP</span><span class="choiceDesc" id="stripInfo"></span></button>
+</div></div></section>
 </div>
 <div class="modal" id="restartModal"><div class="modalbox"><div class="eyebrow">Current game</div><h2>Restart game?</h2><div class="sub">This clears the scores, clothing count and current challenge.</div><div class="buttons two"><button type="button" id="actionBtn9" class="secondary">CANCEL</button><button type="button" id="actionBtn10">RESTART</button></div></div></div>
 <script>
@@ -308,7 +320,8 @@ function rescuePoints(level){return [0,1,1,2,2][level]||0;}
 function push(){E("bottle").hidden=true;if(S.level===4)return;S.risked=S.level;let n=S.level+1;if(Math.random()<L[n][2]){let v=rescuePoints(S.risked);let lines=S.current==="jim"?
 ["You got greedy. Now your luck's gone cold.","You pushed it too far. That confidence just cost you.","You wanted hotter. You got burned."]:
 ["You pushed your luck and it pushed back.","You were feeling daring. The game noticed.","You wanted hotter. You got burned."];
-E("bustText").textContent=lines[Math.floor(Math.random()*lines.length)];E("zipBtn").style.display=S.mode==="classic"?"block":"none";E("stripInfo").textContent=S.mode==="classic"?(v?"Remove one item and salvage "+v+(v===1?" point.":" points."):"No points can be salvaged from this level."):"Quick Strip bust — your turn ends.";E("strip").textContent=S.mode==="classic"?"YOU MUST STRIP":"NEXT TURN";E("strip").dataset.action=S.mode==="classic"?"strip":"next";E("strip").disabled=S.mode==="classic"&&v===0;go("bust");return}S.level=n;S.card=draw(S.current,S.level);
+E("bustText").textContent=lines[Math.floor(Math.random()*lines.length)];E("zipBtn").style.display=S.mode==="classic"?"block":"none";E("stripInfo").textContent=S.mode==="classic"?(v?"Remove "+(v===1?"one item":"two items")+" and save "+v+(v===1?" point.":" points."):"No points can be saved from this level."):"Quick Strip bust — your turn ends.";E("strip").querySelector(".choiceTitle").textContent=S.mode==="classic"?"YOU MUST STRIP":"NEXT TURN";
+E("strip").querySelector(".choiceDesc").textContent=S.mode==="classic"?E("stripInfo").textContent:"Your turn ends.";E("strip").dataset.action=S.mode==="classic"?"strip":"next";E("strip").disabled=S.mode==="classic"&&v===0;go("bust");return}S.level=n;S.card=draw(S.current,S.level);
 if(S.level===4){
   E("screenFire").classList.remove("on");
   E("safe").classList.remove("show","burn-risk");
@@ -334,11 +347,11 @@ function receive(){let r=other();if(S.mode==="classic"){S[r+"Score"]++;scores();
 function challenge(){let x=L[S.level];E("ctitle").textContent="Enjoy";E("clevel").textContent=String(S.level+1).padStart(2,"0")+" — "+x[0];let dm=DURING[S.card.r]||((other()==="jim")?"Enjoy what she's chosen to give you.":"Enjoy what he's chosen to give you.");E("ctext").textContent=dm;E("pending").textContent=S.mode==="classic"?x[1]+" "+(x[1]===1?"point":"points")+" pending for "+cap(S.current)+".":"Complete the challenge, then continue.";go("challenge")}
 function complete(label){let x=L[S.level];E("resultLabel").textContent=label;if(S.mode==="classic"){S[S.current+"Score"]+=x[1];scores();E("resultFx").textContent="+"+x[1]+" "+S.current.toUpperCase();E("resultText").textContent="The giver's points are now banked."}else{E("resultFx").textContent="DONE";E("resultText").textContent="Quick Strip continues."}checkEnd();go("result")}
 function deny(){E("resultLabel").textContent="DENIED";E("resultFx").textContent="0";E("resultText").textContent="Nobody scores. No explanation needed.";go("result")}
-function zip(){E("resultLabel").textContent="BUST";E("resultFx").textContent="ZIP";E("resultText").textContent=cap(S.current)+" gets no points from the bust.";go("result")}
+function zip(){E("resultLabel").textContent="BUST";E("resultFx").textContent="ZIP";E("resultText").textContent="You get no points from the bust.";go("result")}
 function strip(){
 if(E("strip").disabled)return;
 E("strip").disabled=true;
-if(S.mode==="classic"){let v=rescuePoints(S.risked);S[S.current+"Score"]+=v;scores();E("resultLabel").textContent="BUST RESCUE";E("resultFx").textContent="+"+v+" "+S.current.toUpperCase();E("resultText").textContent="One item off. "+v+(v===1?" point saved.":" points saved.")}else{E("resultLabel").textContent="QUICK STRIP";E("resultFx").textContent="ONE ITEM OFF";E("resultText").textContent="First one naked wins."}go("result")}
+if(S.mode==="classic"){let v=rescuePoints(S.risked);S[S.current+"Score"]+=v;scores();E("resultLabel").textContent="BUST RESCUE";E("resultFx").textContent="+"+v+" "+S.current.toUpperCase();E("resultText").textContent=(v===1?"One item off. ":"Two items off. ")+v+(v===1?" point saved.":" points saved.")}else{E("resultLabel").textContent="QUICK STRIP";E("resultFx").textContent="ONE ITEM OFF";E("resultText").textContent="First one naked wins."}go("result")}
 function nextTurn(){beginTurn(other())}
 
 function homeTap(){ if(E("home").classList.contains("active"))return; E("restartModal").classList.add("show") }
