@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0b0e">
+<title>Give or Receive — v5.26</title>
+<style>
+:root{--bg:#0b0b0e;--panel:#18181d;--panel2:#212127;--text:#f5f1e9;--muted:#aaa5ad;--line:#302e36;--jim:#8591ff;--emma:#dc86a2;--red:#d92f37;--hot:#ff554d;--cream:#eee9df}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+body{display:flex;justify-content:center;min-height:100dvh;background:radial-gradient(circle at 50% -10%,#2b141a 0,transparent 38%),linear-gradient(#0b0b0e,#101014)}
+.app{width:min(100vw,430px);min-height:100dvh;padding:calc(18px + env(safe-area-inset-top)) 18px calc(18px + env(safe-area-inset-bottom));display:flex;flex-direction:column}
+.top{display:flex;justify-content:space-between;align-items:center;min-height:48px}.brand{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);font-weight:800}.scores{display:flex;gap:11px;padding:7px 10px;border:1px solid var(--line);border-radius:99px;font-size:12px;color:var(--muted)}.scores b{color:var(--text)}
+.screen{display:none;flex:1;flex-direction:column;animation:fade .2s ease}.screen.active{display:flex}@keyframes fade{from{opacity:.25;transform:translateY(4px)}to{opacity:1;transform:none}}
+.hero{margin:auto 0 22px}.eyebrow{text-transform:uppercase;letter-spacing:.18em;color:var(--muted);font-size:11px;font-weight:800;margin-bottom:10px}h1{font-size:42px;line-height:.94;letter-spacing:-.05em;margin:0 0 14px}h2{font-size:29px;line-height:1.05;letter-spacing:-.035em;margin:0 0 12px}.sub{font-size:15px;line-height:1.5;color:var(--muted)}
+.card{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:25px;padding:22px;box-shadow:0 18px 44px #0006}.card.big{min-height:285px;display:flex;flex-direction:column;justify-content:space-between}
+.mode{padding:18px;border:1px solid var(--line);border-radius:20px;background:#ffffff05;margin-top:10px}.mode.selected{border-color:#a33a40;box-shadow:inset 0 0 0 1px #a33a40}.mode strong{display:block;font-size:18px;margin-bottom:5px}.mode span{color:var(--muted);font-size:13px;line-height:1.4}
+button{border:0;border-radius:18px;min-height:56px;padding:15px 13px;font:inherit;font-weight:850;background:var(--cream);color:#111217;cursor:pointer}button.secondary{background:transparent;color:var(--text);border:1px solid var(--line)}button:disabled{opacity:.35}.buttons{display:grid;gap:10px;margin-top:14px}.buttons.two{grid-template-columns:1fr 1fr}.spacer{flex:1}
+.pill{width:max-content;padding:7px 10px;border-radius:99px;font-size:11px;text-transform:uppercase;letter-spacing:.09em;font-weight:850;margin:8px 0 12px}.pill.jim{color:#aeb7ff;background:#8591ff22;border:1px solid #8591ff40}.pill.emma{color:#f0adc2;background:#dc86a222;border:1px solid #dc86a240}
+.heat{height:10px;background:#291417;border:1px solid #4c2025;border-radius:99px;margin-bottom:15px}.fill{height:100%;width:8%;border-radius:99px;background:linear-gradient(90deg,#7b151d,var(--red),var(--hot));transition:width .4s;position:relative;box-shadow:0 0 10px #d92f3744}.flame{position:absolute;right:-8px;top:-8px;width:18px;height:25px}.flame:before{content:"";position:absolute;inset:3px 2px 1px;background:linear-gradient(145deg,#ff766d,#c01822);border-radius:70% 45% 65% 45%;transform:rotate(45deg);filter:drop-shadow(0 0 4px #ff554d99)}.flame:after{content:"";position:absolute;width:6px;height:9px;left:6px;bottom:3px;background:#ffd19b;border-radius:70% 45% 65% 45%;transform:rotate(45deg)}
+.level{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#ef7a76;font-weight:850}.challenge{font-size:24px;line-height:1.25;letter-spacing:-.02em;margin:24px 0}.points{font-size:12px;color:var(--muted)}.points b{font-size:18px;color:var(--text)}
+.safeSlot{height:48px;display:flex;align-items:center;justify-content:center}.safe{opacity:0;transition:.2s;text-align:center;color:#ff8b85;font-size:12px;font-weight:850;letter-spacing:.12em}.safe.show{opacity:1}.safe small{display:block;color:var(--muted);font-weight:600;letter-spacing:0;margin-top:3px}
+.center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}.bigword{font-size:54px;font-weight:950;letter-spacing:-.055em}.result{font-size:18px;line-height:1.45;color:#ddd8cf;max-width:330px}.tiny{font-size:12px;color:var(--muted);line-height:1.45}.scorefx{font-size:48px;font-weight:950;letter-spacing:-.05em}.pending{padding:12px 14px;border:1px solid #713036;border-radius:15px;background:#2a1418;color:#f1b3b0;font-size:13px;margin-top:14px}.agree{padding:14px;border:1px solid var(--line);border-radius:18px;margin-bottom:9px}.tick{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#29282e;margin-right:7px;font-size:12px;color:#111}.tick.on{background:#95c6a7}
+
+}
+
+/* ALL IN: contained heat only — no rotating rectangle */
+.allin{border-color:#a32c34;box-shadow:0 0 18px #e7353d55,0 18px 44px #0008;animation:allInPulse 1.05s ease-in-out infinite alternate}
+@keyframes allInPulse{to{border-color:#ff554d;box-shadow:0 0 28px #ff3f4766,0 18px 44px #0008}}
+
+/* Hold-to-burn mechanic */
+.card.big{overflow:visible}
+.burn-svg{position:absolute;inset:-7px;width:calc(100% + 14px);height:calc(100% + 14px);pointer-events:none;overflow:visible;opacity:0;transition:opacity .12s}
+.burning .burn-svg{opacity:1}
+.burn-path-bg{fill:none;stroke:#541a20;stroke-width:3;opacity:.45}
+.burn-path{fill:none;stroke:url(#burnGrad);stroke-width:5;stroke-linecap:round;filter:url(#burnGlow);stroke-dasharray:100;stroke-dashoffset:100}
+.burning .burn-path{animation:burnAround 1.65s linear forwards}
+@keyframes burnAround{to{stroke-dashoffset:0}}
+.burning{animation:cardHeat 1.65s linear forwards}
+@keyframes cardHeat{0%{box-shadow:0 18px 44px #0007}65%{box-shadow:0 0 24px #d92f3748,0 18px 44px #0008}100%{box-shadow:0 0 34px #ff514866,0 18px 44px #0008;border-color:#e6464e}}
+.burn-committed{animation:burnAway .24s ease forwards}
+@keyframes burnAway{to{opacity:.15;transform:scale(.985);filter:brightness(1.5) blur(2px)}}
+
+
+
+.brandbtn{background:none;border:0;min-height:0;padding:8px 0;color:var(--muted);border-radius:0}
+.modal{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;padding:24px;z-index:50}.modal.show{display:flex}.modalbox{width:min(100%,360px);background:#19191f;border:1px solid var(--line);border-radius:24px;padding:22px;box-shadow:0 24px 70px #000}.modalbox h2{font-size:25px}.modalbox .buttons{margin-top:20px}
+.fireedge{border-color:#a72c35;animation:flicker .62s ease-in-out infinite alternate;box-shadow:0 0 12px #ff3e4738,0 0 28px #9e17233b,0 18px 44px #0008}
+.fireedge:after{content:"";position:absolute;inset:-3px;border-radius:27px;border:2px solid #ff544b;opacity:.55;filter:drop-shadow(0 0 4px #ff493f);animation:edgeFlicker .42s ease-in-out infinite alternate;pointer-events:none}
+@keyframes flicker{to{box-shadow:0 0 19px #ff5b504d,0 0 34px #a9162448,0 18px 44px #0008}}
+@keyframes edgeFlicker{from{opacity:.32;transform:scale(.998)}to{opacity:.82;transform:scale(1.004)}}
+.clothes{display:flex;gap:8px;margin:7px 0 12px}.clothes span{flex:1;padding:9px;border:1px solid var(--line);border-radius:13px;text-align:center;font-size:12px;color:var(--muted)}.clothes b{color:var(--text)}
+
+#bottle[hidden]{display:none!important}
+#bottle{width:100%;margin-top:10px;border-color:#b93a42;color:#ff8b86}
+.burn-choice-hidden{display:none!important}
+
+.screen-fire{position:fixed;inset:0;z-index:18;pointer-events:none;overflow:hidden;opacity:0;transition:opacity .15s}
+.screen-fire.on{opacity:1}
+.fire-rise{position:absolute;left:-8%;right:-8%;bottom:0;height:100%;transform-origin:bottom center;background:radial-gradient(ellipse at 15% 100%,#ffbf6b 0 5%,#ff5548 12%,transparent 31%),radial-gradient(ellipse at 42% 100%,#ff8a52 0 8%,#d52232 19%,transparent 39%),radial-gradient(ellipse at 72% 100%,#ffc070 0 5%,#ff493f 14%,transparent 34%),radial-gradient(ellipse at 92% 100%,#ff7950 0 7%,#a91224 20%,transparent 38%),linear-gradient(to top,#7d0d19 0%,#e12b31 30%,#ff754a 56%,transparent 82%);filter:blur(3px) saturate(1.15);opacity:.82}
+.screen-fire.on .fire-rise{animation:fireFill 2.7s linear forwards}
+.fire-glow{position:absolute;left:0;right:0;bottom:0;height:100%;transform-origin:bottom center;background:linear-gradient(to top,#c4142860,transparent 72%);opacity:0}
+.screen-fire.on .fire-glow{animation:fireGlow 2.7s linear forwards}
+@keyframes fireFill{0%{transform:scaleY(.02)}100%{transform:scaleY(1)}}
+@keyframes fireGlow{0%{opacity:0;transform:scaleY(.02)}60%{opacity:.38}100%{opacity:.72;transform:scaleY(1)}}
+.wrap{position:relative;z-index:20}
+.pill{display:block;width:100%;box-sizing:border-box;text-align:center}
+#bottle{grid-column:1/-1;width:100%;box-sizing:border-box;min-height:62px;font-size:17px}
+#safe.burn-risk{font-size:22px;font-weight:900;line-height:1.05;letter-spacing:.02em}
+#safe.burn-risk small{display:block;font-size:15px;margin-top:7px;font-weight:800}
+
+#safe.burn-risk{font-size:0}
+#safe.burn-risk small{font-size:22px;line-height:1.08;font-weight:900;letter-spacing:.02em;margin-top:0}
+
+/* v5.14: interactive controls always stay above the rising fire */
+.screen-fire{z-index:18}
+.wrap{position:relative;z-index:20}
+.buttons,.safeSlot,.pill{position:relative;z-index:30}
+button{position:relative;z-index:31}
+#bottle{z-index:32}
+
+/* v5.15 burn stacking: card below fire, controls/status above it */
+.wrap{position:relative;z-index:auto}
+.screen-fire{z-index:40}
+#play.screen.active .card,#play.screen.active #maincard{position:relative;z-index:20}
+#play.screen.active .pill,#play.screen.active .safeSlot,#play.screen.active .buttons{position:relative;z-index:60}
+#play.screen.active button{position:relative;z-index:61}
+#play.screen.active #bottle{z-index:62}
+
+/* v5.16 definitive transition layering */
+.fireedge,.burning,.burn-committed{animation:none!important;box-shadow:none!important}
+.fireedge::before,.fireedge::after,.burning::before,.burning::after,.burn-committed::before,.burn-committed::after{display:none!important;content:none!important}
+.screen-fire{z-index:40!important}
+#play.screen.active #maincard{position:relative;z-index:20!important}
+#play.screen.active .pill{position:relative;z-index:70!important;background:#241a20!important}
+#play.screen.active .safeSlot{position:relative;z-index:70!important}
+#play.screen.active .buttons{position:relative;z-index:70!important;background:#0d0d10!important;border-radius:20px;padding:8px}
+#play.screen.active button{position:relative;z-index:71!important;opacity:1!important;filter:none!important}
+#play.screen.active #bottle{z-index:72!important;background:var(--cream)!important;color:#111217!important;opacity:1!important}
+#safe.burn-risk{position:relative;z-index:71!important;background:#0d0d10!important;border-radius:14px;padding:10px 8px}
+#safe.burn-risk small{color:#fff!important;opacity:1!important}
+
+/* v5.17 true stacking-context fix */
+#turn.screen.active{position:relative;isolation:isolate}
+#turn .screen-fire{position:absolute;inset:0;z-index:30!important;pointer-events:none;overflow:hidden}
+#turn #maincard{position:relative;z-index:10!important}
+#turn .pill,#turn .heatwrap,#turn .safeSlot,#turn .buttons{position:relative;z-index:50!important}
+#turn .safeSlot,#turn .buttons{isolation:isolate}
+#turn #safe,#turn #safeSub,#turn button{position:relative;z-index:51!important;opacity:1!important;filter:none!important}
+#turn #bottle{z-index:52!important;background:var(--cream)!important;color:#111217!important;box-shadow:0 8px 30px #0008!important}
+#turn #safe.burn-risk{background:#0d0d10!important;color:#fff!important}
+#turn #safe.burn-risk small{color:#fff!important;opacity:1!important}
+
+/* v5.21 labelled heat gauge */
+.heatWrap{margin-bottom:15px}
+.heatLabels{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin:0 0 7px}
+.heatLabels span{font-size:9px;line-height:1;text-align:center;letter-spacing:.08em;font-weight:850;color:#6f6063;opacity:.58;white-space:nowrap;transition:color .35s,opacity .35s,text-shadow .35s,filter .35s,transform .35s}
+.heatLabels span.current{color:#fff;opacity:1;text-shadow:0 0 10px #ff625b88;transform:translateY(-1px)}
+.heatLabels span.burnt{color:#4a3032;opacity:.52;text-shadow:0 0 3px #b01f2733,0 0 8px #ff4c3d22;filter:blur(.18px) contrast(1.2)}
+.heatLabels span.burnt::after{content:"";display:block;width:72%;height:1px;margin:2px auto 0;background:linear-gradient(90deg,transparent,#7a262b,#2a1517,#9c2d30,transparent);opacity:.75}
+.heatLabels span.future{color:#65595c;opacity:.45}
+.heat{margin-bottom:0}
+
+/* v5.22 heat labels layered on the gauge */
+.heatWrap{margin-bottom:15px}
+.heat{position:relative;height:28px;overflow:visible;margin-bottom:0}
+.heat .fill{position:absolute;left:0;top:0;bottom:0;height:auto}
+.heatLabels{position:absolute;inset:0;z-index:6;display:grid;grid-template-columns:repeat(5,1fr);gap:0;margin:0;pointer-events:none;align-items:center}
+.heatLabels span{font-size:8.5px;line-height:1;text-align:center;letter-spacing:.05em;font-weight:900;color:#76686b;opacity:.6;white-space:nowrap;text-shadow:0 1px 2px #000;transition:color .35s,opacity .35s,text-shadow .35s,filter .35s,transform .35s}
+.heatLabels span.current{color:#fff;opacity:1;text-shadow:0 0 7px #ff625bcc,0 1px 2px #000;transform:scale(1.04)}
+.heatLabels span.burnt{color:#34282a;opacity:.72;text-shadow:0 0 3px #8b1d2333,0 0 7px #ff4b3d22;filter:blur(.12px) contrast(1.3)}
+.heatLabels span.burnt::after{content:"";position:absolute;bottom:4px;width:12%;height:1px;margin-left:-10%;background:linear-gradient(90deg,transparent,#6f2227,#1e1113,#7f282c,transparent);opacity:.8}
+.heatLabels span.future{color:#6b5f62;opacity:.42}
+
+/* ALL IN arrival */
+#allInReveal{position:absolute;inset:0;z-index:90;display:none;align-items:center;justify-content:center;flex-direction:column;background:radial-gradient(circle at 50% 45%,#5c0f18 0,#1a0d10 38%,#09090b 76%);text-align:center;padding:24px}
+#allInReveal.show{display:flex;animation:allInFade .22s ease-out}
+#allInReveal .allInKicker{font-size:12px;letter-spacing:.22em;font-weight:850;color:#ff9d91;text-transform:uppercase;margin-bottom:10px}
+#allInReveal .allInTitle{font-size:34px;line-height:.98;font-weight:950;letter-spacing:-.035em;color:#fff;text-shadow:0 0 22px #ff473f99,0 0 48px #9d172baa}
+#allInReveal .allInGlow{width:72%;height:8px;margin-top:18px;border-radius:99px;background:linear-gradient(90deg,transparent,#ff5a4b,#ffb16f,#ff5a4b,transparent);box-shadow:0 0 26px #ff463f88;animation:allInPulse .8s ease-in-out infinite alternate}
+#turn.all-in-state{background:radial-gradient(circle at 50% 20%,#411017 0,#171014 38%,#0b0b0d 76%)}
+#turn.all-in-state #maincard{box-shadow:0 0 0 1px #7f2930,0 18px 50px #000b,0 0 28px #b626342b}
+@keyframes allInFade{from{opacity:0}to{opacity:1}}
+@keyframes allInPulse{from{opacity:.55;transform:scaleX(.94)}to{opacity:1;transform:scaleX(1.04)}}
+
+#turn:has(#allInReveal.show) #maincard,
+#turn:has(#allInReveal.show) .heatWrap,
+#turn:has(#allInReveal.show) .safeSlot,
+#turn:has(#allInReveal.show) .buttons,
+#turn:has(#allInReveal.show) .pill{visibility:hidden}
+
+/* v5.23 ALL IN actions */
+#turn.all-in-actions .buttons.two{grid-template-columns:1fr}
+#turn.all-in-actions #further{display:none!important}
+#turn.all-in-actions #giveBtn{grid-column:1/-1;width:100%}
+
+/* Point-value emphasis */
+#value{display:inline-block;animation:pointPulse 1.8s ease-in-out infinite;transform-origin:center left}
+#turn.level-1 #value{color:#f6f0e9;text-shadow:0 0 8px #ff7a7044}
+#turn.level-2 #value{color:#fff0e8;text-shadow:0 0 10px #ff756655,0 0 18px #ff493322}
+#turn.level-3 #value{color:#fff0e7;text-shadow:0 0 12px #ff6d5d66,0 0 22px #ff3d2f33}
+#turn.level-4 #value{color:#fff3ea;text-shadow:0 0 14px #ff675b88,0 0 26px #ff382c44}
+#turn.level-5 #value{color:#fff6ee;text-shadow:0 0 16px #ff7b6baa,0 0 30px #ff2d234f,0 0 42px #ffb36b33}
+@keyframes pointPulse{
+  0%,100%{transform:scale(1);filter:brightness(1);opacity:.96}
+  50%{transform:scale(1.045);filter:brightness(1.16);opacity:1}
+}
+
+/* v5.24 bust choice descriptions + version tag */
+.bustChoices .choiceBtn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;text-align:center;padding:15px 18px}
+.choiceTitle{display:block;font-size:19px;font-weight:900;line-height:1.05}
+.choiceDesc{display:block;font-size:11px;line-height:1.25;font-weight:700;opacity:.62;letter-spacing:.01em}
+#strip .choiceDesc{color:#4a4540}
+#zipBtn .choiceDesc{color:#d0c8c2}
+.versionTag{position:absolute;right:18px;bottom:14px;font-size:10px;font-weight:750;letter-spacing:.08em;color:#8d8589;opacity:.48}
+#home{position:relative}
+
+/* v5.25 rules page */
+.rulesCard{background:#151417;border:1px solid #3a3034;border-radius:24px;padding:18px 18px 8px;box-shadow:0 16px 42px #0007}
+.rulesCard p{margin:0 0 14px;font-size:14px;line-height:1.42;color:#ddd5d1}
+.rulesCard strong{color:#fff}
+.rulesFine{font-size:12px!important;color:#aaa1a4!important}
+</style></head><body><div class="app">
+<div class="top"><button type="button" class="brand brandbtn" id="homeBtn">Give or Receive</button><div class="scores"><span>Jim <b id="sj">0</b></span><span>Emma <b id="se">0</b></span></div></div>
+
+<section class="screen active" id="home"><div class="hero"><div class="eyebrow">Prototype v5.26</div><h1>GIVE OR<br>RECEIVE</h1><div class="sub">Choose how you want to play.</div></div>
+<div class="mode selected" id="mc" onclick="mode('classic')"><strong>CLASSIC</strong><span>Race to 20. Push your luck. Bust and choose between nothing — or clothing.</span></div>
+<div class="mode" id="mq" onclick="mode('quick')"><strong>QUICK STRIP</strong><span>No points race. Each player starts with 4 removable items. First one naked wins.</span></div><div class="spacer"></div><button type="button" class="secondary" id="rulesBtn">HOW TO PLAY</button><div style="height:10px"></div><button type="button" id="actionBtn1">CONTINUE</button><div class="versionTag">v5.26</div></section>
+
+<section class="screen" id="rules">
+  <div class="eyebrow">How to play</div>
+  <h2>GIVE OR RECEIVE</h2>
+  <div class="rulesCard">
+    <p>On your turn, you privately see a pleasure card for your partner. There are 5 levels of pleasure. You start at level 1.</p>
+
+    <p>You then have two choices:</p>
+
+    <p><strong>GIVE</strong> offers them that pleasure.<br>
+    or<br>
+    <strong>TAKE IT FURTHER</strong> burns that pleasure card in return for getting a next level card but risks a bust.<br>
+    During the 3-second burn you can tap <strong>BOTTLE IT</strong> to keep your current card.</p>
+
+    <p>Each higher level increases the chance of a bust.<br>
+    <strong>TEMPT 5%, NAUGHTY 15%, HOT 30%, ALL IN 50%.</strong></p>
+
+    <p>Your partner sees the offer without its level or value and chooses <strong>RECEIVE</strong> or <strong>SORRY, NOT MY THING</strong>.</p>
+
+    <p>If they choose <strong>SORRY, NOT MY THING</strong>, no one gets any points, so choose wisely on what you <strong>GIVE</strong>.</p>
+
+    <p>In Classic you get <strong>+1 point</strong> for pressing <strong>RECEIVE</strong>. Completing the challenge banks the giver that pleasure card’s value.</p>
+
+    <p>If you bust in Classic, you can choose <strong>YOU GET ZIP</strong> (lose your points) or <strong>YOU MUST STRIP</strong> (remove clothing but save points). This saves <strong>1 point on TEMPT/NAUGHTY</strong> and <strong>2 points on HOT/ALL IN</strong>. You have to remove the same amount of clothing as points you’re saving.</p>
+
+    <p><strong>Classic:</strong> race to 20 points. The other player gets a Last Chance turn. A tie goes to Quick Strip.</p>
+
+    <p><strong>Quick Strip:</strong> First player naked wins. A bust ends your turn.<br>
+    Each Pleasure Card performed is worth an amount of clothes that the giver then removes.</p>
+
+    <p class="rulesFine">Either person can stop or change their mind at any time. <strong>RECEIVE</strong> means happy to try — not a promise to finish.</p>
+  </div>
+  <div class="spacer"></div>
+  <button type="button" id="rulesBack">BACK</button>
+</section>
+
+
+<section class="screen" id="agreement"><div class="eyebrow">Before you start</div><h2>Both playing by choice.</h2><div class="sub" style="margin-bottom:15px">RECEIVE means “I’m happy to try this.” DENY means “not this one.” Either player can end a challenge whenever they want.</div>
+<div class="agree"><span class="tick" id="tj">✓</span><b>Jim</b><div class="tiny">I’m choosing to play and can change my mind at any point.</div></div><button type="button" id="aj">JIM — I'M IN</button><div style="height:9px"></div>
+<div class="agree"><span class="tick" id="te">✓</span><b>Emma</b><div class="tiny">I’m choosing to play and can change my mind at any point.</div></div><button type="button" id="ae">EMMA — I'M IN</button><div class="spacer"></div><button id="play" type="button" disabled>LET'S PLAY</button></section>
+
+<section class="screen" id="turn"><div id="allInReveal" aria-hidden="true">
+  <div class="allInKicker">SAFE</div>
+  <div class="allInTitle">YOU’VE GONE<br>ALL IN</div>
+  <div class="allInGlow"></div>
+</div><div id="screenFire" class="screen-fire" aria-hidden="true"><div class="fire-rise"></div><div class="fire-glow"></div></div><div id="pill" class="pill jim"></div><div class="heatWrap">
+  <div class="heat">
+    <div class="fill" id="heat"><span class="flame"></span></div>
+    <div class="heatLabels" id="heatLabels">
+      <span data-level="0">TEASE</span>
+      <span data-level="1">TEMPT</span>
+      <span data-level="2">NAUGHTY</span>
+      <span data-level="3">HOT</span>
+      <span data-level="4">ALL IN</span>
+    </div>
+  </div>
+</div>
+<div class="card big" id="maincard">
+<svg class="burn-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+<defs>
+<linearGradient id="burnGrad" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#ffb06b"/><stop offset=".3" stop-color="#ff554d"/><stop offset="1" stop-color="#b71925"/></linearGradient>
+<filter id="burnGlow"><feGaussianBlur stdDeviation="1.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+</defs>
+<rect class="burn-path-bg" x="2" y="2" width="96" height="96" rx="7" pathLength="100"/>
+<rect class="burn-path" x="2" y="2" width="96" height="96" rx="7" pathLength="100"/>
+</svg>
+<div><div class="level" id="level"></div><div class="challenge" id="giver"></div></div><div class="points"><b id="value"></b></div></div>
+<div class="safeSlot"><div class="safe" id="safe"><span id="safeWord">SAFE</span><small id="safeSub"></small></div></div><div class="buttons two"><button type="button" id="giveBtn">GIVE</button><button type="button" class="secondary" id="further" onclick="startBurn()">TAKE IT FURTHER</button><button type="button" id="bottle" class="secondary bottle" hidden onclick="bottleIt()">BOTTLE IT</button></div></section>
+
+<section class="screen" id="handover"><div class="center"><div class="eyebrow">Pass the phone</div><h2 id="pass"></h2><div class="sub" id="passSub"></div><div style="height:22px"></div><button type="button" id="actionBtn3" style="width:100%">I'M READY</button></div></section>
+
+<section class="screen" id="decision"><div id="rpill" class="pill emma"></div><div class="eyebrow">Your choice</div><h2 id="offer"></h2><div class="card big" style="min-height:260px"><div class="challenge" id="receiver"></div><div class="tiny">Level and point value stay hidden until you decide.</div></div><div class="spacer"></div><div class="buttons two"><button type="button" id="actionBtn4">RECEIVE</button><button type="button" id="actionBtn5" class="secondary">SORRY, NOT MY THING</button></div></section>
+
+<section class="screen" id="received"><div class="center"><div class="eyebrow">Received</div><div class="scorefx" id="rfx"></div><div class="result" id="rtext"></div><div style="height:22px"></div><button type="button" id="actionBtn6" style="width:100%">START CHALLENGE</button></div></section>
+
+<section class="screen" id="challenge"><div class="eyebrow">Challenge accepted</div><h2 id="ctitle"></h2><div class="card"><div class="level" id="clevel"></div><div class="challenge" id="ctext"></div><div class="pending" id="pending"></div></div><div class="spacer"></div><div class="buttons"><button type="button" id="actionBtn7">MMMM AMAZING</button><button type="button" id="actionBtn8" class="secondary">FUN, BUT I’M DONE</button></div></section>
+
+<section class="screen" id="result"><div class="center"><div class="eyebrow" id="resultLabel"></div><div class="scorefx" id="resultFx"></div><div class="result" id="resultText"></div><div style="height:22px"></div><button type="button" style="width:100%" id="nextTurnBtn">NEXT TURN</button></div></section>
+
+<section class="screen" id="bust"><div class="center"><div class="bigword">BUST</div><div class="result" id="bustText"></div><div class="buttons bustChoices" style="width:100%;margin-top:22px">
+<button type="button" class="secondary choiceBtn" id="zipBtn"><span class="choiceTitle">YOU GET ZIP</span><span class="choiceDesc">End your turn and save nothing.</span></button>
+<button type="button" class="choiceBtn" id="strip"><span class="choiceTitle">YOU MUST STRIP</span><span class="choiceDesc" id="stripInfo"></span></button>
+</div></div></section>
+</div>
+<div class="modal" id="restartModal"><div class="modalbox"><div class="eyebrow">Current game</div><h2>Restart game?</h2><div class="sub">This clears the scores, clothing count and current challenge.</div><div class="buttons two"><button type="button" id="actionBtn9" class="secondary">CANCEL</button><button type="button" id="actionBtn10">RESTART</button></div></div></div>
+<script>
+const L=[["TEASE",1,0],["TEMPT",2,.05],["NAUGHTY",3,.15],["HOT",4,.30],["ALL IN",5,.50]];
+const D={
+jim:[
+[{g:"Give Emma a slow 20-second kiss. She chooses where.",r:"Let Jim give you a slow 20-second kiss. You choose where."},{g:"Tell Emma three things you find irresistible about her.",r:"Let Jim tell you three things he finds irresistible about you."}],
+[{g:"Slowly remove one item of Emma's clothing of your choice, then give her a lingering kiss.",r:"Let Jim slowly remove one item of your clothing of his choice, then give you a lingering kiss."},{g:"Give Emma a one-minute massage. She chooses where.",r:"Let Jim give you a one-minute massage. You choose where."}],
+[{g:"Emma gets 90 seconds to direct your kisses and touch.",r:"For 90 seconds, you direct Jim's kisses and touch."},{g:"Emma chooses two kinds of attention she enjoys. Give her 30 seconds of each.",r:"Choose two kinds of attention you enjoy. Jim gives you 30 seconds of each."}],
+[{g:"Emma names three intimate things she would enjoy. Choose one you are happy to give her.",r:"Tell Jim three intimate things you'd enjoy right now. He chooses the one he most wants to give you."},{g:"You control the first minute. Emma controls the second.",r:"Jim controls the first minute. You control the second."}],
+[{g:"Emma chooses slow, teasing or adventurous. Give her five minutes built around it.",r:"Choose how you want Jim to tease you — slow, teasing or adventurous. He gives you five minutes built around your choice."},{g:"Offer Emma three intimate experiences you are happy to give. She chooses one.",r:"Let Jim offer you three intimate experiences he genuinely wants to give you. You choose which one you want."}]
+],
+emma:[
+[{g:"Give Jim a slow 20-second kiss somewhere of your choosing.",r:"Let Emma give you a slow 20-second kiss somewhere she chooses."},{g:"Tell Jim three things you find irresistible about him.",r:"Let Emma tell you three things she finds irresistible about you."}],
+[{g:"Remove one item of Jim's clothing of your choice, then give him a lingering kiss.",r:"Let Emma remove one item of your clothing of her choice, then give you a lingering kiss."},{g:"Give Jim a one-minute massage somewhere he chooses.",r:"Let Emma give you a one-minute massage. You choose where."}],
+[{g:"Take control for 90 seconds. Jim can tell you what he likes, but you decide the pace.",r:"Emma takes control for 90 seconds. You can tell her what you like, but she decides the pace."},{g:"Jim chooses two kinds of attention he enjoys. Give him 30 seconds of each.",r:"Choose two kinds of attention you enjoy. Emma gives you 30 seconds of each."}],
+[{g:"Jim names three intimate things he would enjoy. Choose one you are happy to give him.",r:"Tell Emma three intimate things you'd enjoy right now. She chooses the one she most wants to give you."},{g:"Jim directs the first minute. You control the second.",r:"You direct the first minute. Emma controls the second."}],
+[{g:"Jim chooses slow, teasing or adventurous. You decide how to interpret it.",r:"Choose how you want Emma to tease you — slow, teasing or adventurous. She decides what happens next."},{g:"Offer Jim three intimate experiences you are happy to give. He chooses one.",r:"Let Emma offer you three intimate experiences she genuinely wants to give you. You choose which one you want."}]
+]};
+const DURING={"Let Jim give you a slow 20-second kiss. You choose where.": "Enjoy choosing exactly where you want his attention.", "Let Jim tell you three things he finds irresistible about you.": "Enjoy hearing exactly what gets to him about you.", "For 90 seconds, you direct Jim's kisses and touch.": "You're in charge now. Enjoy making him follow your lead.", "Choose one item of your clothing for him to remove — slowly.": "Take your time. Let him make that one item worth removing.", "Choose who controls the next minute: you or him.": "Your choice is made. Enjoy seeing what happens when control changes hands.", "Tell Jim three intimate things you'd enjoy right now. He chooses the one he most wants to give you.": "You gave him the menu. Now enjoy finding out what he picked.", "Jim controls the first minute. You control the second.": "Enjoy the first minute — then it's your turn to take over.", "Choose how you want Jim to tease you — slow, teasing or adventurous. He gives you five minutes built around your choice.": "You chose the mood. Now let him make good on it.", "Let Jim offer you three intimate experiences he genuinely wants to give you. You choose which one you want.": "You made your choice. Now enjoy making him deliver.", "Let Emma give you a slow 20-second kiss somewhere she chooses.": "Enjoy not knowing exactly where she's going to choose.", "Let Emma tell you three things she finds irresistible about you.": "Enjoy hearing exactly what she can't resist about you.", "Emma takes control for 90 seconds. You can tell her what you like, but she decides the pace.": "She's in charge of the pace now. Enjoy letting her decide.", "Let Emma choose one item of your clothing and remove it as slowly as she can.": "Enjoy the wait. She's allowed to take her time.", "Tell Emma three intimate things you'd enjoy right now. She chooses the one she most wants to give you.": "You've told her what you want. Now enjoy finding out what she chooses.", "You direct the first minute. Emma controls the second.": "Enjoy being in charge while it lasts — her turn is coming.", "Choose how you want Emma to tease you — slow, teasing or adventurous. She decides what happens next.": "You chose the mood. Now enjoy letting her interpret it.", "Let Emma offer you three intimate experiences she genuinely wants to give you. You choose which one you want.": "You've picked your favourite. Now enjoy what she does with it."};
+let S={mode:"classic",jimScore:0,emmaScore:0,current:"jim",level:0,card:null,risked:0,a:{jim:false,emma:false},clothes:{jim:4,emma:4},lastChance:null,used:{jim:[[],[],[],[],[]],emma:[[],[],[],[],[]]}};
+const E=x=>document.getElementById(x),cap=x=>x[0].toUpperCase()+x.slice(1),other=()=>S.current==="jim"?"emma":"jim";
+function go(x){document.querySelectorAll(".screen").forEach(e=>e.classList.remove("active"));E(x).classList.add("active")}
+function mode(x){S.mode=x;E("mc").classList.toggle("selected",x==="classic");E("mq").classList.toggle("selected",x==="quick")}
+function agree(x){S.a[x]=true;E(x==="jim"?"tj":"te").classList.add("on");E(x==="jim"?"aj":"ae").disabled=true;if(S.a.jim&&S.a.emma)E("play").disabled=false}
+function draw(p,l){let a=D[p][l],used=S.used[p][l];if(used.length>=a.length)used.length=0;let choices=a.map((_,i)=>i).filter(i=>!used.includes(i));let i=choices[Math.floor(Math.random()*choices.length)];used.push(i);return a[i]}
+function scores(){E("sj").textContent=S.jimScore;E("se").textContent=S.emmaScore}
+function beginTurn(p){
+  S.current=p;
+  S.level=0;
+  S.card=draw(p,0);
+  render();
+  go("turn");
+}
+function beginGame(){ beginTurn("jim"); }
+function render(){burnActive=false;clearTimeout(burnTimer);if(E("screenFire"))E("screenFire").classList.remove("on");if(E("safeWord"))E("safeWord").style.display="";if(E("bottle"))E("bottle").hidden=true;if(E("giveBtn"))E("giveBtn").classList.remove("burn-choice-hidden");if(E("further"))E("further").classList.remove("burn-choice-hidden");let x=L[S.level];E("pill").textContent=cap(S.current)+"'s turn";E("pill").className="pill "+S.current;E("level").textContent=String(S.level+1).padStart(2,"0")+" — "+x[0];E("giver").textContent=S.card.g;E("value").textContent=S.mode==="classic"?x[1]+(x[1]===1?" point":" points"):"QUICK STRIP";E("heat").style.width=(8+S.level*23)+"%";
+document.querySelectorAll("#heatLabels span").forEach(function(el){
+  const n=Number(el.dataset.level);
+  el.classList.remove("burnt","current","future");
+  el.classList.add(n<S.level?"burnt":n===S.level?"current":"future");
+});
+E("further").disabled=(S.level>=4);
+E("turn").classList.toggle("all-in-state",S.level===4);
+E("turn").classList.toggle("all-in-actions",S.level===4);
+for(let i=1;i<=5;i++)E("turn").classList.toggle("level-"+i,S.level===i-1);}
+
+let burnTimer=null, burnActive=false;
+function startBurn(){
+  if(S.level>=4 || burnActive)return;
+  burnActive=true;
+  const nextLevel=S.level+1;
+  E("screenFire").classList.remove("on");
+  void E("screenFire").offsetWidth;
+  E("screenFire").classList.add("on");
+  E("safeWord").style.display="none";E("safe").classList.add("show","burn-risk");
+  E("safeSub").textContent=Math.round(L[nextLevel][2]*100)+"% BUST RISK · BURNING THIS CARD";
+  E("giveBtn").classList.add("burn-choice-hidden");
+  E("further").classList.add("burn-choice-hidden");
+  E("bottle").hidden=false;
+  
+  burnTimer=setTimeout(commitBurn,3000);
+}
+function bottleIt(){
+  if(!burnActive)return;
+  burnActive=false;
+  clearTimeout(burnTimer);
+  E("maincard").classList.remove("burning","burn-committed");
+  E("screenFire").classList.remove("on");
+  E("safe").classList.remove("burn-risk");E("safeWord").style.display="";
+  E("giveBtn").classList.remove("burn-choice-hidden");
+  E("further").classList.remove("burn-choice-hidden");
+  E("bottle").hidden=true;
+  E("safe").classList.remove("show");
+  E("safeSub").textContent="";
+}
+function commitBurn(){
+  if(!burnActive)return;
+  burnActive=false;
+  
+  E("maincard").classList.add("burn-committed");
+  setTimeout(function(){
+    E("maincard").classList.remove("burning","burn-committed");
+    E("screenFire").classList.remove("on");
+    E("safe").classList.remove("burn-risk");E("safeWord").style.display="";
+    E("giveBtn").classList.remove("burn-choice-hidden");
+    E("further").classList.remove("burn-choice-hidden");
+    push();
+  },240);
+}
+function rescuePoints(level){return [0,1,1,2,2][level]||0;}
+function push(){E("bottle").hidden=true;if(S.level===4)return;S.risked=S.level;let n=S.level+1;if(Math.random()<L[n][2]){let v=rescuePoints(S.risked);let lines=S.current==="jim"?
+["You got greedy. Now your luck's gone cold.","You pushed it too far. That confidence just cost you.","You wanted hotter. You got burned."]:
+["You pushed your luck and it pushed back.","You were feeling daring. The game noticed.","You wanted hotter. You got burned."];
+E("bustText").textContent=lines[Math.floor(Math.random()*lines.length)];E("zipBtn").style.display=S.mode==="classic"?"block":"none";E("stripInfo").textContent=S.mode==="classic"?(v?"Remove "+(v===1?"one item":"two items")+" and save "+v+(v===1?" point.":" points."):"No points can be saved from this level."):"Quick Strip bust — your turn ends.";E("strip").querySelector(".choiceTitle").textContent=S.mode==="classic"?"YOU MUST STRIP":"NEXT TURN";
+E("strip").querySelector(".choiceDesc").textContent=S.mode==="classic"?E("stripInfo").textContent:"Your turn ends.";E("strip").dataset.action=S.mode==="classic"?"strip":"next";E("strip").disabled=S.mode==="classic"&&v===0;go("bust");return}S.level=n;S.card=draw(S.current,S.level);
+if(S.level===4){
+  E("screenFire").classList.remove("on");
+  E("safe").classList.remove("show","burn-risk");
+  E("safeWord").style.display="";
+  E("allInReveal").classList.add("show");
+  E("allInReveal").setAttribute("aria-hidden","false");
+  setTimeout(function(){
+    E("allInReveal").classList.remove("show");
+    E("allInReveal").setAttribute("aria-hidden","true");
+    render();
+    E("turn").classList.add("all-in-state");
+  },1450);
+}else{
+  render();
+  E("safe").classList.add("show");
+  E("safeSub").textContent=L[S.level][0]+" unlocked";
+  setTimeout(()=>E("safe").classList.remove("show"),1100);
+}
+}
+function give(){let r=other();E("pass").textContent="PASS TO "+r.toUpperCase();E("passSub").textContent=cap(S.current)+" has an offer for you. The card is hidden.";go("handover")}
+function ready(){let r=other();E("rpill").textContent="For "+cap(r);E("rpill").className="pill "+r;E("offer").textContent=S.current.toUpperCase()+"'S OFFER";E("receiver").textContent=S.card.r;go("decision")}
+function receive(){let r=other();if(S.mode==="classic"){S[r+"Score"]++;scores();E("rfx").textContent="+1 "+r.toUpperCase();E("rtext").textContent="For choosing to receive."}else{E("rfx").textContent="RECEIVED";E("rtext").textContent="Quick Strip continues."}go("received")}
+function challenge(){let x=L[S.level];E("ctitle").textContent="Enjoy";E("clevel").textContent=String(S.level+1).padStart(2,"0")+" — "+x[0];let dm=DURING[S.card.r]||((other()==="jim")?"Enjoy what she's chosen to give you.":"Enjoy what he's chosen to give you.");E("ctext").textContent=dm;E("pending").textContent=S.mode==="classic"?x[1]+" "+(x[1]===1?"point":"points")+" pending for "+cap(S.current)+".":"Complete the challenge, then continue.";go("challenge")}
+function complete(label){let x=L[S.level];E("resultLabel").textContent=label;if(S.mode==="classic"){S[S.current+"Score"]+=x[1];scores();E("resultFx").textContent="+"+x[1]+" "+S.current.toUpperCase();E("resultText").textContent="The giver's points are now banked."}else{E("resultFx").textContent="DONE";E("resultText").textContent="Quick Strip continues."}checkEnd();go("result")}
+function deny(){E("resultLabel").textContent="DENIED";E("resultFx").textContent="0";E("resultText").textContent="Nobody scores. No explanation needed.";go("result")}
+function zip(){E("resultLabel").textContent="BUST";E("resultFx").textContent="ZIP";E("resultText").textContent="You get no points from the bust.";go("result")}
+function strip(){
+if(E("strip").disabled)return;
+E("strip").disabled=true;
+if(S.mode==="classic"){let v=rescuePoints(S.risked);S[S.current+"Score"]+=v;scores();E("resultLabel").textContent="BUST RESCUE";E("resultFx").textContent="+"+v+" "+S.current.toUpperCase();E("resultText").textContent=(v===1?"One item off. ":"Two items off. ")+v+(v===1?" point saved.":" points saved.")}else{E("resultLabel").textContent="QUICK STRIP";E("resultFx").textContent="ONE ITEM OFF";E("resultText").textContent="First one naked wins."}go("result")}
+function nextTurn(){beginTurn(other())}
+
+function homeTap(){ if(E("home").classList.contains("active"))return; E("restartModal").classList.add("show") }
+function closeRestart(){E("restartModal").classList.remove("show")}
+function restart(){
+ S.jimScore=0;S.emmaScore=0;S.current="jim";S.level=0;S.card=null;S.risked=0;S.a={jim:false,emma:false};S.clothes={jim:4,emma:4};S.lastChance=null;S.used={jim:[[],[],[],[],[]],emma:[[],[],[],[],[]]};
+ ["aj","ae"].forEach(id=>E(id).disabled=false);E("play").disabled=true;E("tj").classList.remove("on");E("te").classList.remove("on");scores();closeRestart();go("home");
+}
+function checkEnd(){
+ if(S.mode!=="classic")return;
+ let a=S.current,b=other(),as=S[a+"Score"],bs=S[b+"Score"];
+ if(!S.lastChance && as>=20){S.lastChance=b;E("resultText").textContent+=" "+cap(b)+" gets one LAST CHANCE turn."}
+}
+
+E('homeBtn').addEventListener("click",function(e){e.preventDefault();homeTap()});
+E('rulesBtn').addEventListener("click",function(e){e.preventDefault();go("rules")});
+E('rulesBack').addEventListener("click",function(e){e.preventDefault();go("home")});
+E('actionBtn1').addEventListener("click",function(e){e.preventDefault();go('agreement')});
+E('aj').addEventListener("click",function(e){e.preventDefault();agree('jim')});
+E('ae').addEventListener("click",function(e){e.preventDefault();agree('emma')});
+E('giveBtn').addEventListener("click",function(e){e.preventDefault();give()});
+E('actionBtn3').addEventListener("click",function(e){e.preventDefault();ready()});
+E('actionBtn4').addEventListener("click",function(e){e.preventDefault();receive()});
+E('actionBtn5').addEventListener("click",function(e){e.preventDefault();deny()});
+E('actionBtn6').addEventListener("click",function(e){e.preventDefault();challenge()});
+E('actionBtn7').addEventListener("click",function(e){e.preventDefault();complete('MMMM AMAZING')});
+E('actionBtn8').addEventListener("click",function(e){e.preventDefault();complete('FUN, BUT I’M DONE')});
+E('zipBtn').addEventListener("click",function(e){e.preventDefault();zip()});
+E('strip').addEventListener("click",function(e){
+  e.preventDefault();
+  if(E("strip").dataset.action==="next") nextTurn();
+  else strip();
+});
+E('actionBtn9').addEventListener("click",function(e){e.preventDefault();closeRestart()});
+E('actionBtn10').addEventListener("click",function(e){e.preventDefault();restart()});
+const nextTurnBtn=E("nextTurnBtn");
+nextTurnBtn.addEventListener("click",nextTurn);
+nextTurnBtn.addEventListener("touchend",function(e){e.preventDefault();nextTurn();},{passive:false});
+const playBtn=E("play");
+playBtn.addEventListener("click",beginGame);
+playBtn.addEventListener("touchend",function(e){
+  if(playBtn.disabled)return;
+  e.preventDefault();
+  beginGame();
+},{passive:false});
+scores();
+</script></body></html>
