@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b0b0e">
-<title>Give or Receive — v3</title>
+<title>Give or Receive — v5</title>
 <style>
 :root{--bg:#0b0b0e;--panel:#18181d;--panel2:#212127;--text:#f5f1e9;--muted:#aaa5ad;--line:#302e36;--jim:#8591ff;--emma:#dc86a2;--red:#d92f37;--hot:#ff554d;--cream:#eee9df}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
@@ -22,23 +22,57 @@ button{border:0;border-radius:18px;min-height:56px;padding:15px 13px;font:inheri
 .safeSlot{height:48px;display:flex;align-items:center;justify-content:center}.safe{opacity:0;transition:.2s;text-align:center;color:#ff8b85;font-size:12px;font-weight:850;letter-spacing:.12em}.safe.show{opacity:1}.safe small{display:block;color:var(--muted);font-weight:600;letter-spacing:0;margin-top:3px}
 .center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}.bigword{font-size:54px;font-weight:950;letter-spacing:-.055em}.result{font-size:18px;line-height:1.45;color:#ddd8cf;max-width:330px}.tiny{font-size:12px;color:var(--muted);line-height:1.45}.scorefx{font-size:48px;font-weight:950;letter-spacing:-.05em}.pending{padding:12px 14px;border:1px solid #713036;border-radius:15px;background:#2a1418;color:#f1b3b0;font-size:13px;margin-top:14px}.agree{padding:14px;border:1px solid var(--line);border-radius:18px;margin-bottom:9px}.tick{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#29282e;margin-right:7px;font-size:12px;color:#111}.tick.on{background:#95c6a7}
 
-.allin{border-color:#7b292e;box-shadow:0 0 26px #e42e3648,0 18px 44px #0008;animation:ember 1.05s ease-in-out infinite alternate}
-.allin:before{content:"";position:absolute;inset:-4px;border-radius:28px;padding:2px;background:conic-gradient(from 0deg,#7c161d,#ff5148,#ff9b5d,#b51c25,#ff5148,#7c161d);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:fireEdge 2.7s linear infinite;pointer-events:none}
-@keyframes fireEdge{to{transform:rotate(360deg)}}@keyframes ember{to{box-shadow:0 0 38px #ff3d4558,0 18px 44px #0008}}
-</style></head><body><div class="app">
-<div class="top"><div class="brand">Give or Receive</div><div class="scores"><span>Jim <b id="sj">0</b></span><span>Emma <b id="se">0</b></span></div></div>
+}
 
-<section class="screen active" id="home"><div class="hero"><div class="eyebrow">Prototype v3</div><h1>GIVE OR<br>RECEIVE</h1><div class="sub">Choose how you want to play.</div></div>
+/* ALL IN: contained heat only — no rotating rectangle */
+.allin{border-color:#a32c34;box-shadow:0 0 18px #e7353d55,0 18px 44px #0008;animation:allInPulse 1.05s ease-in-out infinite alternate}
+@keyframes allInPulse{to{border-color:#ff554d;box-shadow:0 0 28px #ff3f4766,0 18px 44px #0008}}
+
+/* Hold-to-burn mechanic */
+.card.big{overflow:visible}
+.burn-svg{position:absolute;inset:-7px;width:calc(100% + 14px);height:calc(100% + 14px);pointer-events:none;overflow:visible;opacity:0;transition:opacity .12s}
+.burning .burn-svg{opacity:1}
+.burn-path-bg{fill:none;stroke:#541a20;stroke-width:3;opacity:.45}
+.burn-path{fill:none;stroke:url(#burnGrad);stroke-width:5;stroke-linecap:round;filter:url(#burnGlow);stroke-dasharray:100;stroke-dashoffset:100}
+.burning .burn-path{animation:burnAround 1.65s linear forwards}
+@keyframes burnAround{to{stroke-dashoffset:0}}
+.burning{animation:cardHeat 1.65s linear forwards}
+@keyframes cardHeat{0%{box-shadow:0 18px 44px #0007}65%{box-shadow:0 0 24px #d92f3748,0 18px 44px #0008}100%{box-shadow:0 0 34px #ff514866,0 18px 44px #0008;border-color:#e6464e}}
+.burn-committed{animation:burnAway .24s ease forwards}
+@keyframes burnAway{to{opacity:.15;transform:scale(.985);filter:brightness(1.5) blur(2px)}}
+#further.holding{border-color:#c63840;color:#ff8e88;box-shadow:0 0 18px #d92f3733}
+
+
+.brandbtn{background:none;border:0;min-height:0;padding:8px 0;color:var(--muted);border-radius:0}
+.modal{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;padding:24px;z-index:50}.modal.show{display:flex}.modalbox{width:min(100%,360px);background:#19191f;border:1px solid var(--line);border-radius:24px;padding:22px;box-shadow:0 24px 70px #000}.modalbox h2{font-size:25px}.modalbox .buttons{margin-top:20px}
+.fireedge{border-color:#a72c35;animation:flicker .62s ease-in-out infinite alternate;box-shadow:0 0 12px #ff3e4738,0 0 28px #9e17233b,0 18px 44px #0008}
+.fireedge:after{content:"";position:absolute;inset:-3px;border-radius:27px;border:2px solid #ff544b;opacity:.55;filter:drop-shadow(0 0 4px #ff493f);animation:edgeFlicker .42s ease-in-out infinite alternate;pointer-events:none}
+@keyframes flicker{to{box-shadow:0 0 19px #ff5b504d,0 0 34px #a9162448,0 18px 44px #0008}}
+@keyframes edgeFlicker{from{opacity:.32;transform:scale(.998)}to{opacity:.82;transform:scale(1.004)}}
+.clothes{display:flex;gap:8px;margin:7px 0 12px}.clothes span{flex:1;padding:9px;border:1px solid var(--line);border-radius:13px;text-align:center;font-size:12px;color:var(--muted)}.clothes b{color:var(--text)}
+</style></head><body><div class="app">
+<div class="top"><button class="brand brandbtn" id="homeBtn" onclick="homeTap()">Give or Receive</button><div class="scores"><span>Jim <b id="sj">0</b></span><span>Emma <b id="se">0</b></span></div></div>
+
+<section class="screen active" id="home"><div class="hero"><div class="eyebrow">Prototype v5</div><h1>GIVE OR<br>RECEIVE</h1><div class="sub">Choose how you want to play.</div></div>
 <div class="mode selected" id="mc" onclick="mode('classic')"><strong>CLASSIC</strong><span>Race to 20. Push your luck. Bust and choose between nothing — or clothing.</span></div>
-<div class="mode" id="mq" onclick="mode('quick')"><strong>QUICK STRIP</strong><span>No points race. First one naked wins.</span></div><div class="spacer"></div><button onclick="go('agreement')">CONTINUE</button></section>
+<div class="mode" id="mq" onclick="mode('quick')"><strong>QUICK STRIP</strong><span>No points race. Each player starts with 4 removable items. First one naked wins.</span></div><div class="spacer"></div><button onclick="go('agreement')">CONTINUE</button></section>
 
 <section class="screen" id="agreement"><div class="eyebrow">Before you start</div><h2>Both playing by choice.</h2><div class="sub" style="margin-bottom:15px">RECEIVE means “I’m happy to try this.” DENY means “not this one.” Either player can end a challenge whenever they want.</div>
 <div class="agree"><span class="tick" id="tj">✓</span><b>Jim</b><div class="tiny">I’m choosing to play and can change my mind at any point.</div></div><button id="aj" onclick="agree('jim')">JIM — I'M IN</button><div style="height:9px"></div>
 <div class="agree"><span class="tick" id="te">✓</span><b>Emma</b><div class="tiny">I’m choosing to play and can change my mind at any point.</div></div><button id="ae" onclick="agree('emma')">EMMA — I'M IN</button><div class="spacer"></div><button id="play" disabled onclick="start('jim')">LET'S PLAY</button></section>
 
 <section class="screen" id="turn"><div id="pill" class="pill jim"></div><div class="heat"><div class="fill" id="heat"><span class="flame"></span></div></div>
-<div class="card big" id="maincard"><div><div class="level" id="level"></div><div class="challenge" id="giver"></div></div><div class="points"><b id="value"></b><br>Private — only the giver should see this.</div></div>
-<div class="safeSlot"><div class="safe" id="safe">SAFE<small id="safeSub"></small></div></div><div class="buttons two"><button onclick="give()">GIVE</button><button class="secondary" id="further" onclick="push()">TAKE IT FURTHER</button></div></section>
+<div class="card big" id="maincard">
+<svg class="burn-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+<defs>
+<linearGradient id="burnGrad" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#ffb06b"/><stop offset=".3" stop-color="#ff554d"/><stop offset="1" stop-color="#b71925"/></linearGradient>
+<filter id="burnGlow"><feGaussianBlur stdDeviation="1.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+</defs>
+<rect class="burn-path-bg" x="2" y="2" width="96" height="96" rx="7" pathLength="100"/>
+<rect class="burn-path" x="2" y="2" width="96" height="96" rx="7" pathLength="100"/>
+</svg>
+<div><div class="level" id="level"></div><div class="challenge" id="giver"></div></div><div class="points"><b id="value"></b><br>Private — only the giver should see this.</div></div>
+<div class="safeSlot"><div class="safe" id="safe">SAFE<small id="safeSub"></small></div></div><div class="buttons two"><button onclick="give()">GIVE</button><button class="secondary" id="further">TAKE IT FURTHER</button></div></section>
 
 <section class="screen" id="handover"><div class="center"><div class="eyebrow">Pass the phone</div><h2 id="pass"></h2><div class="sub" id="passSub"></div><div style="height:22px"></div><button style="width:100%" onclick="ready()">I'M READY</button></div></section>
 
@@ -52,6 +86,7 @@ button{border:0;border-radius:18px;min-height:56px;padding:15px 13px;font:inheri
 
 <section class="screen" id="bust"><div class="center"><div class="bigword">BUST</div><div class="result" id="bustText"></div><div class="buttons" style="width:100%;margin-top:22px"><button class="secondary" id="zipBtn" onclick="zip()">YOU GET ZIP</button><button id="strip" onclick="strip()">YOU MUST STRIP</button><div class="tiny" id="stripInfo"></div></div></div></section>
 </div>
+<div class="modal" id="restartModal"><div class="modalbox"><div class="eyebrow">Current game</div><h2>Restart game?</h2><div class="sub">This clears the scores, clothing count and current challenge.</div><div class="buttons two"><button class="secondary" onclick="closeRestart()">CANCEL</button><button onclick="restart()">RESTART</button></div></div></div>
 <script>
 const L=[["TEASE",1,0],["TEMPT",2,.05],["NAUGHTY",3,.15],["HOT",4,.30],["ALL IN",5,.50]];
 const D={
@@ -69,15 +104,45 @@ emma:[
 [{g:"Jim names three intimate things he would enjoy. Choose one you are happy to give him.",r:"Tell Emma three intimate things you'd enjoy right now. She chooses the one she most wants to give you."},{g:"Jim directs the first minute. You control the second.",r:"You direct the first minute. Emma controls the second."}],
 [{g:"Jim chooses slow, teasing or adventurous. You decide how to interpret it.",r:"Choose how you want Emma to tease you — slow, teasing or adventurous. She decides what happens next."},{g:"Offer Jim three intimate experiences you are happy to give. He chooses one.",r:"Let Emma offer you three intimate experiences she genuinely wants to give you. You choose which one you want."}]
 ]};
+const DURING={"Let Jim give you a slow 20-second kiss. You choose where.": "Enjoy choosing exactly where you want his attention.", "Let Jim tell you three things he finds irresistible about you.": "Enjoy hearing exactly what gets to him about you.", "For 90 seconds, you direct Jim's kisses and touch.": "You're in charge now. Enjoy making him follow your lead.", "Choose one item of your clothing for him to remove — slowly.": "Take your time. Let him make that one item worth removing.", "Choose who controls the next minute: you or him.": "Your choice is made. Enjoy seeing what happens when control changes hands.", "Tell Jim three intimate things you'd enjoy right now. He chooses the one he most wants to give you.": "You gave him the menu. Now enjoy finding out what he picked.", "Jim controls the first minute. You control the second.": "Enjoy the first minute — then it's your turn to take over.", "Choose how you want Jim to tease you — slow, teasing or adventurous. He gives you five minutes built around your choice.": "You chose the mood. Now let him make good on it.", "Let Jim offer you three intimate experiences he genuinely wants to give you. You choose which one you want.": "You made your choice. Now enjoy making him deliver.", "Let Emma give you a slow 20-second kiss somewhere she chooses.": "Enjoy not knowing exactly where she's going to choose.", "Let Emma tell you three things she finds irresistible about you.": "Enjoy hearing exactly what she can't resist about you.", "Emma takes control for 90 seconds. You can tell her what you like, but she decides the pace.": "She's in charge of the pace now. Enjoy letting her decide.", "Let Emma choose one item of your clothing and remove it as slowly as she can.": "Enjoy the wait. She's allowed to take her time.", "Tell Emma three intimate things you'd enjoy right now. She chooses the one she most wants to give you.": "You've told her what you want. Now enjoy finding out what she chooses.", "You direct the first minute. Emma controls the second.": "Enjoy being in charge while it lasts — her turn is coming.", "Choose how you want Emma to tease you — slow, teasing or adventurous. She decides what happens next.": "You chose the mood. Now enjoy letting her interpret it.", "Let Emma offer you three intimate experiences she genuinely wants to give you. You choose which one you want.": "You've picked your favourite. Now enjoy what she does with it."};
 let S={mode:"classic",jimScore:0,emmaScore:0,current:"jim",level:0,card:null,risked:0,a:{jim:false,emma:false}};
 const E=x=>document.getElementById(x),cap=x=>x[0].toUpperCase()+x.slice(1),other=()=>S.current==="jim"?"emma":"jim";
 function go(x){document.querySelectorAll(".screen").forEach(e=>e.classList.remove("active"));E(x).classList.add("active")}
 function mode(x){S.mode=x;E("mc").classList.toggle("selected",x==="classic");E("mq").classList.toggle("selected",x==="quick")}
 function agree(x){S.a[x]=true;E(x==="jim"?"tj":"te").classList.add("on");E(x==="jim"?"aj":"ae").disabled=true;if(S.a.jim&&S.a.emma)E("play").disabled=false}
-function draw(p,l){let a=D[p][l];return a[Math.floor(Math.random()*a.length)]}
+function draw(p,l){let a=D[p][l],used=S.used[p][l];if(used.length>=a.length)used.length=0;let choices=a.map((_,i)=>i).filter(i=>!used.includes(i));let i=choices[Math.floor(Math.random()*choices.length)];used.push(i);return a[i]}
 function scores(){E("sj").textContent=S.jimScore;E("se").textContent=S.emmaScore}
 function start(p){S.current=p;S.level=0;S.card=draw(p,0);render();go("turn")}
-function render(){let x=L[S.level];E("pill").textContent=cap(S.current)+"'s turn";E("pill").className="pill "+S.current;E("level").textContent=String(S.level+1).padStart(2,"0")+" — "+x[0];E("giver").textContent=S.card.g;E("value").textContent=S.mode==="classic"?x[1]+(x[1]===1?" point":" points"):"QUICK STRIP";E("heat").style.width=(8+S.level*23)+"%";E("further").disabled=S.level===4;E("maincard").classList.toggle("allin",S.level===4)}
+function render(){let x=L[S.level];E("pill").textContent=cap(S.current)+"'s turn";E("pill").className="pill "+S.current;E("level").textContent=String(S.level+1).padStart(2,"0")+" — "+x[0];E("giver").textContent=S.card.g;E("value").textContent=S.mode==="classic"?x[1]+(x[1]===1?" point":" points"):"QUICK STRIP";E("heat").style.width=(8+S.level*23)+"%";E("further").disabled=S.level===4;E("maincard").classList.toggle("fireedge",S.level===4)}
+
+let holdTimer=null, holding=false;
+function holdStart(ev){
+ if(S.level===4||E("further").disabled)return;
+ ev.preventDefault(); holding=true;
+ const nextLevel=S.level+1;
+ E("risk").textContent=Math.round(L[nextLevel][2]*100)+"% BUST RISK · KEEP HOLDING";
+ E("maincard").classList.remove("burn-committed");
+ void E("maincard").offsetWidth;
+ E("maincard").classList.add("burning");
+ E("further").classList.add("holding");
+ if(navigator.vibrate) navigator.vibrate(18);
+ holdTimer=setTimeout(commitPush,1650);
+}
+function holdCancel(){
+ if(!holding)return;
+ holding=false; clearTimeout(holdTimer);
+ E("maincard").classList.remove("burning","burn-committed");
+ E("further").classList.remove("holding");
+ if(S.level<4) E("risk").textContent="Hold TAKE IT FURTHER to risk this card";
+}
+function commitPush(){
+ if(!holding)return;
+ holding=false; clearTimeout(holdTimer);
+ E("further").classList.remove("holding");
+ E("maincard").classList.add("burn-committed");
+ if(navigator.vibrate) navigator.vibrate([25,35,45]);
+ setTimeout(()=>{E("maincard").classList.remove("burning","burn-committed");push();},240);
+}
 function push(){if(S.level===4)return;S.risked=S.level;let n=S.level+1;if(Math.random()<L[n][2]){let v=Math.floor(L[S.risked][1]/2);let lines=S.current==="jim"?
 ["You got greedy. Now your luck's gone cold.","You pushed it too far. That confidence just cost you.","You wanted hotter. You got burned."]:
 ["You pushed your luck and it pushed back.","You were feeling daring. The game noticed.","You wanted hotter. You got burned."];
@@ -85,11 +150,28 @@ E("bustText").textContent=lines[Math.floor(Math.random()*lines.length)];E("zipBt
 function give(){let r=other();E("pass").textContent="PASS TO "+r.toUpperCase();E("passSub").textContent=cap(S.current)+" has an offer for you. The card is hidden.";go("handover")}
 function ready(){let r=other();E("rpill").textContent="For "+cap(r);E("rpill").className="pill "+r;E("offer").textContent=S.current.toUpperCase()+"'S OFFER";E("receiver").textContent=S.card.r;go("decision")}
 function receive(){let r=other();if(S.mode==="classic"){S[r+"Score"]++;scores();E("rfx").textContent="+1 "+r.toUpperCase();E("rtext").textContent="For choosing to receive."}else{E("rfx").textContent="RECEIVED";E("rtext").textContent="Quick Strip continues."}go("received")}
-function challenge(){let x=L[S.level];E("ctitle").textContent=cap(S.current)+"'s challenge";E("clevel").textContent=String(S.level+1).padStart(2,"0")+" — "+x[0];E("ctext").textContent=S.card.r;E("pending").textContent=S.mode==="classic"?x[1]+" "+(x[1]===1?"point":"points")+" pending for "+cap(S.current)+".":"Complete the challenge, then continue.";go("challenge")}
-function complete(label){let x=L[S.level];E("resultLabel").textContent=label;if(S.mode==="classic"){S[S.current+"Score"]+=x[1];scores();E("resultFx").textContent="+"+x[1]+" "+S.current.toUpperCase();E("resultText").textContent="The giver's points are now banked."}else{E("resultFx").textContent="DONE";E("resultText").textContent="Quick Strip continues."}go("result")}
+function challenge(){let x=L[S.level];E("ctitle").textContent="Enjoy";E("clevel").textContent=String(S.level+1).padStart(2,"0")+" — "+x[0];let dm=DURING[S.card.r]||((other()==="jim")?"Enjoy what she's chosen to give you.":"Enjoy what he's chosen to give you.");E("ctext").textContent=dm;E("pending").textContent=S.mode==="classic"?x[1]+" "+(x[1]===1?"point":"points")+" pending for "+cap(S.current)+".":"Complete the challenge, then continue.";go("challenge")}
+function complete(label){let x=L[S.level];E("resultLabel").textContent=label;if(S.mode==="classic"){S[S.current+"Score"]+=x[1];scores();E("resultFx").textContent="+"+x[1]+" "+S.current.toUpperCase();E("resultText").textContent="The giver's points are now banked."}else{E("resultFx").textContent="DONE";E("resultText").textContent="Quick Strip continues."}checkEnd();go("result")}
 function deny(){E("resultLabel").textContent="DENIED";E("resultFx").textContent="0";E("resultText").textContent="Nobody scores. No explanation needed.";go("result")}
 function zip(){E("resultLabel").textContent="BUST";E("resultFx").textContent="ZIP";E("resultText").textContent=cap(S.current)+" gets no points from the bust.";go("result")}
 function strip(){if(S.mode==="classic"){let v=Math.floor(L[S.risked][1]/2);S[S.current+"Score"]+=v;scores();E("resultLabel").textContent="BUST RESCUE";E("resultFx").textContent="+"+v+" "+S.current.toUpperCase();E("resultText").textContent="One item off. Half the risked card value salvaged, rounded down."}else{E("resultLabel").textContent="QUICK STRIP";E("resultFx").textContent="ONE ITEM OFF";E("resultText").textContent="First one naked wins."}go("result")}
 function next(){start(other())}
+
+function homeTap(){ if(E("home").classList.contains("active"))return; E("restartModal").classList.add("show") }
+function closeRestart(){E("restartModal").classList.remove("show")}
+function restart(){
+ S.jimScore=0;S.emmaScore=0;S.current="jim";S.level=0;S.card=null;S.risked=0;S.a={jim:false,emma:false};S.clothes={jim:4,emma:4};S.lastChance=null;S.used={jim:[[],[],[],[],[]],emma:[[],[],[],[],[]]};
+ ["aj","ae"].forEach(id=>E(id).disabled=false);E("play").disabled=true;E("tj").classList.remove("on");E("te").classList.remove("on");scores();closeRestart();go("home");
+}
+function checkEnd(){
+ if(S.mode!=="classic")return;
+ let a=S.current,b=other(),as=S[a+"Score"],bs=S[b+"Score"];
+ if(!S.lastChance && as>=20){S.lastChance=b;E("resultText").textContent+=" "+cap(b)+" gets one LAST CHANCE turn."}
+}
+
+const tf=E("further");
+tf.addEventListener("pointerdown",holdStart,{passive:false});
+["pointerup","pointercancel","pointerleave"].forEach(n=>tf.addEventListener(n,holdCancel));
+tf.addEventListener("contextmenu",e=>e.preventDefault());
 scores();
 </script></body></html>
